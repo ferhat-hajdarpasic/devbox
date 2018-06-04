@@ -144,6 +144,9 @@ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 export PS1="\${debian_chroot:+(\$debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\] \[$txtcyn\]\$git_branch\[$txtred\]\$git_dirty\[$txtrst\]\$ "
 export JDK8_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 export JDK_HOME=$JDK8_HOME
+
+export ACT_ENV=tst #Which environment out there to target from command line
+
 #alias dataservices='gradle clean jR -Penv=local -PactiveProfile=mock,testhelper'
 alias dataservices='JAVA_HOME=$JDK8_HOME ./gradlew -Penv=local -PactiveProfile=mock clean appRunDebug'
 alias placementsweb='gradle clean gwtAll jR -Penv=local -PactiveProfile=mock,testhelper -PproductIds=All'
@@ -169,6 +172,28 @@ alias startdb='printf "startup" | sqlplus / as sysdba'
 alias gitpullall='for D in INS*; do [ -d "${D}" ] && cd "${D}" && git checkout master && git pull && cd ..; done'
 alias gitpass='git config --global credential.helper "cache --timeout 3600"'
 
+alias dststlog='scp fhajdarp@apsydudst002.aonnet.aon.net:/var/log/tomcat8/dataservices.log /tmp'
+
+json() {
+    http --verify=no https://atpservices-$ACT_ENV.aonnet.aon.net/dataservices/placements/$1/data
+}
+
+aclopen() {
+    echo "https://atp$ACT_ENV.aon.com.au/placements/id/$1"
+}
+
+aclcreatenz() {
+    export productId="$1"
+    export clientId="2327749"
+    export assignedTo="banderso"
+    echo "https://atp$ACT_ENV.aon.com.au/placements/newplacement/createPopulatedPlacement?clientId=$clientId&assignedTo=$assignedTo&productId=$productId&creatorUserId=A0708775&oppSystem=NONE&clientSystem=ODS"
+}
+
+monitoring() {
+    export auditId=$(http --verify=no https://atpservices-$ACT_ENV.aonnet.aon.net/dataservices/placements/$1/data | jq ".AuditId" | tr -d '"')
+    echo "google-chrome https://supporttools-$ACT_ENV/Monitoring/Monitoring.html#Detail?auditId=$auditId"
+}
+
 placementwar() {
     cdplacementsweb
     gradle clean war sourceJar testJar -x test -PproductIds=AUVTXWC
@@ -189,5 +214,22 @@ placementwar() {
     #    echo "replaced $filename with the latest built"
     #done
 }
+
+tst_installkeys() {
+    ssh-copy-id fhajdarp@apsydudst002.aonnet.aon.net
+    ssh-copy-id fhajdarp@apws-autctst01
+}
+
+tstdslog() {
+    scp fhajdarp@apsydudst002.aonnet.aon.net:/var/log/tomcat8/dataservices.log /tmp/dataservices1.log
+    code /tmp/dataservices1.log
+}
+
+tstpwlog() {
+    # Run this to install keys if gets lost: ssh-copy-id masong@apsyduwst001.apac.aon.bz
+    scp masong@apsyduwst001.apac.aon.bz:/aon/tomcat/tst/atp/logs/placements.log /tmp/placements.log
+    code /tmp/placements.log
+}
+
 
 HISTCONTROL=ignoredups:erasedups
