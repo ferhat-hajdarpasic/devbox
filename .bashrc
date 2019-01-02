@@ -116,8 +116,10 @@ if ! shopt -oq posix; then
   fi
 fi
 
+export PATH="$PATH:/opt/firefox" # Add firefox 10 to the path.
+
 export PATH="$PATH:$HOME/.rvm/gems/ruby-1.9.3-p551/bin" # Add RVM to PATH for scripting
-export PATH="$PATH:$HOME/idea-IU-172.3317.76/bin"
+export PATH="$PATH:$HOME/idea-IU-181.4203.550/bin"
 export PATH="$PATH:$HOME/android-studio/bin/"
 export PATH="$PATH:/media/sf_android-sdk/Sdk/platform-tools/"
 export PATH="$PATH:$HOME/node-v8.11.1-linux-x64/bin"
@@ -136,7 +138,9 @@ export GRADLE_OPTS="-Xms1024m -Xmx2048m -XX:MaxPermSize=256m"
 export PATH=/opt/gradle-1.3/bin:$PATH
 
 export ANDROID_HOME=/media/sf_android-sdk/Sdk/
+export ANDROID_NDK_HOME=/media/sf_android-sdk/Sdk/ndk-bundle
 export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+export PATH=$PATH:/home/ferhat/bin
 
 . /etc/profile.d/git-01color.sh
 . /etc/profile.d/git-02prompt.sh
@@ -145,26 +149,27 @@ export PS1="\${debian_chroot:+(\$debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]
 export JDK8_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 export JDK_HOME=$JDK8_HOME
 
-export ACT_ENV=tst #Which environment out there to target from command line
+export ACL_ENV=tst #Which environment out there to target from command line
 
 #alias dataservices='gradle clean jR -Penv=local -PactiveProfile=mock,testhelper'
-alias dataservices='JAVA_HOME=$JDK8_HOME ./gradlew -Penv=local -PactiveProfile=mock clean appRunDebug'
-alias placementsweb='gradle clean gwtAll jR -Penv=local -PactiveProfile=mock,testhelper -PproductIds=All'
-alias auvtxwc='gradle clean gwtAll jR -Penv=local -PactiveProfile=mock,testhelper -PproductIds=AUVTXWC'
+alias dataservices='JAVA_HOME=$JDK8_HOME ./gradlew -Penv=local -PactiveProfile=mock :clean :lapse:jar appRunDebug'
+alias placementsweb='./gradlew clean gwtAll jR -Penv=local -PactiveProfile=mock,testhelper -PproductIds=All'
+alias auvtxwc='./gradlew clean gwtAll jR -Penv=local -PactiveProfile=mock,testhelper -PproductIds=AUVTXWC'
+alias ins3544='./gradlew clean gwtAll jR -Penv=local -PactiveProfile=mock,testhelper -PproductIds=INS3544_V1'
 alias cdplacementsweb='cd ~/workspace/ATP/products/placements/web/'
 alias cddataservices='cd ~/workspace/ATP/services/web/'
 alias sqlUpDa='cd ~/workspace/ATP/services/sql/; git checkout master; git pull; gradle upDa'
-alias sqldev='~/sqldeveloper/sqldeveloper.sh &'
+alias sqldev='~/sqldeveloper-18.3/sqldeveloper/sqldeveloper.sh &'
 alias stash='function _stash(){ git remote show origin | grep "Fetch URL:" | cut -d" " -f 5 | xargs google-chrome; };_stash'
 alias bitbucket='function _bitbucket(){ git remote show origin | grep "Fetch URL:" | cut -d" " -f 5 | xargs google-chrome; };_bitbucket'
 alias jira='function _jira(){ google-chrome "https://aonriskservices.atlassian.net/browse/$1"; };_jira'
 alias itwiki='function _itwiki(){ google-chrome "http://itwiki.aonnet.aon.net/dosearchsite.action?queryString=$1"; };_itwiki'
 alias svntrunk='function _svntrunk(){ svn co "svn+ssh://fhajdarp@apsyduapt001.aonnet.aon.net/svn/integration/$1/trunk" $1;};_svntrunk'
-alias scenario='cd ~/workspace/ATP/products/placements/scenario-test; function _scenario(){ gradle -Dproduct=$1 -Dtarget.env=tst -Dstory=$2 -Dbrowser=firefox clean testBusinessScenario;};_scenario'
+alias scenario='cd ~/workspace/ATP/products/placements/scenario-test; function _scenario(){ ./gradlew -Dproduct=$1 -Dtarget.env=tst -Dstory=$2 -Dbrowser=firefox clean testBusinessScenario;};_scenario'
 alias rmdir='rm -r -f $1'
 alias jkill='ps -ef | grep java | cut -c 10-15| xargs kill -9'
-alias java6='sudo update-alternatives --config java <<< "1"'
-alias java8='sudo update-alternatives --config java <<< "3"'
+alias java6='sudo update-alternatives --config java <<< "2"'
+alias java8='sudo update-alternatives --config java <<< "4"'
 alias unit='function _unit(){ gradle -Dtest.single=$1 -Penv=local test; };_unit'
 alias unittest='function _unit(){ JAVA_HOME=$JDK8_HOME ./gradlew -x compileJava -x compileGroovy -x jacocoTestCoverageVerification -x jacocoTestReport test --tests $1; };_unit'
 
@@ -173,25 +178,35 @@ alias gitpullall='for D in INS*; do [ -d "${D}" ] && cd "${D}" && git checkout m
 alias gitpass='git config --global credential.helper "cache --timeout 3600"'
 
 alias dststlog='scp fhajdarp@apsydudst002.aonnet.aon.net:/var/log/tomcat8/dataservices.log /tmp'
+alias aclfilename='function _aclfilename(){ json $1 | jq ".Documentation.Doc[].FileName"; };_aclfilename'
+alias sublimits='function _sublimits(){ json $1 | jq ".Options.Option[].Insurers.Insurer[].SubLimitsOfLiabilitySections"; };_sublimits'
+alias riskversion='function _riskversion(){ json $1 | jq ".PlacementInformation.RiskVersion"; };_riskversion'
 
 json() {
-    http --verify=no https://atpservices-$ACT_ENV.aonnet.aon.net/dataservices/placements/$1/data
+    http --verify=no https://atpservices-$ACL_ENV.aonnet.aon.net/dataservices/placements/$1/data
 }
 
 aclopen() {
-    echo "https://atp$ACT_ENV.aon.com.au/placements/id/$1"
+    echo "https://atp$ACL_ENV.aon.com.au/placements/id/$1"
 }
 
 aclcreatenz() {
     export productId="$1"
     export clientId="2327749"
     export assignedTo="banderso"
-    echo "https://atp$ACT_ENV.aon.com.au/placements/newplacement/createPopulatedPlacement?clientId=$clientId&assignedTo=$assignedTo&productId=$productId&creatorUserId=A0708775&oppSystem=NONE&clientSystem=ODS"
+    echo "https://atp$ACL_ENV.aon.com.au/placements/newplacement/createPopulatedPlacement?clientId=$clientId&assignedTo=$assignedTo&productId=$productId&creatorUserId=A0708775&oppSystem=NONE&clientSystem=ODS"
 }
 
 monitoring() {
-    export auditId=$(http --verify=no https://atpservices-$ACT_ENV.aonnet.aon.net/dataservices/placements/$1/data | jq ".AuditId" | tr -d '"')
-    echo "google-chrome https://supporttools-$ACT_ENV/Monitoring/Monitoring.html#Detail?auditId=$auditId"
+    export auditId=$(http --verify=no https://atpservices-$ACL_ENV.aonnet.aon.net/dataservices/placements/$1/data | jq ".AuditId" | tr -d '"')
+    echo "google-chrome https://supporttools-$ACL_ENV/Monitoring/Monitoring.html#Detail?auditId=$auditId"
+}
+
+commits() {
+    export project=$(git remote show origin | grep "Fetch URL:" | awk -F'//.+/|.git' '{print $2}')
+     for arg in $(git log --author $1 --after '04/20/2018' | grep commit | awk '{print $2}'); do 
+        eval "google-chrome https://bitbucket.aon.com/projects/ACL/repos/$project/commits/$arg"  &>/dev/null &disown; 
+    done
 }
 
 placementwar() {
@@ -215,6 +230,13 @@ placementwar() {
     #done
 }
 
+rmtests() {
+    for filename in $(find ~/.gradle/caches -name 'placements-SNAPSHOT-test.jar'); do
+        zip --delete "$filename" "*/$1/*"
+        echo "deleted tests from $filename for $1t"
+    done
+}
+
 tst_installkeys() {
     ssh-copy-id fhajdarp@apsydudst002.aonnet.aon.net
     ssh-copy-id fhajdarp@apws-autctst01
@@ -233,3 +255,7 @@ tstpwlog() {
 
 
 HISTCONTROL=ignoredups:erasedups
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+#export SDKMAN_DIR="/home/ferhat/.sdkman"
+#[[ -s "/home/ferhat/.sdkman/bin/sdkman-init.sh" ]] && source "/home/ferhat/.sdkman/bin/sdkman-init.sh"
